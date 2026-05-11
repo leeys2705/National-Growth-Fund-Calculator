@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국민성장펀드 계산기</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a1628;
+  color:#faf7f0;
+  font-family:-apple-system,sans-serif;
+  padding:24px 14px 60px;
+  font-size:14px;
+}
+h1 { font-size:20px; font-weight:700; text-align:center; margin-bottom:6px; }
+h1 span { color:#c9a84c; }
+.sub { text-align:center; color:#6b7a99; font-size:12px; margin-bottom:20px; line-height:1.6; }
+
+.section {
+  background:#112240;
+  border:1px solid rgba(201,168,76,0.25);
+  border-radius:8px;
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.section-head {
+  background:rgba(201,168,76,0.1);
+  border-bottom:1px solid rgba(201,168,76,0.2);
+  padding:10px 14px;
+  font-size:11px;
+  font-weight:700;
+  color:#c9a84c;
+  letter-spacing:1px;
+}
+.section-body { padding:14px; }
+
+.grid4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:6px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+
+.taxbtn {
+  background:#0d1d35;
+  border:2px solid rgba(255,255,255,0.12);
+  border-radius:6px;
+  padding:10px 4px;
+  text-align:center;
+  cursor:pointer;
+  color:#faf7f0;
+  width:100%;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;
+  appearance:none;
+  font-family:-apple-system,sans-serif;
+  line-height:1.4;
+  display:block;
+}
+.taxbtn * { pointer-events:none; }
+.taxbtn.on { border-color:#c9a84c; background:rgba(201,168,76,0.18); }
+.brate { display:block; font-size:15px; font-weight:700; color:#c9a84c; margin-bottom:2px; }
+.taxbtn.on .brate { color:#e8c97a; }
+.brange { display:block; font-size:9px; color:#6b7a99; line-height:1.3; }
+
+.input-row { position:relative; }
+.input-row input {
+  width:100%;
+  background:rgba(201,168,76,0.07);
+  border:2px solid rgba(201,168,76,0.3);
+  border-radius:6px;
+  padding:12px 52px 12px 14px;
+  font-size:24px;
+  font-weight:700;
+  color:#e8c97a;
+  text-align:right;
+  outline:none;
+  -webkit-appearance:none;
+  -moz-appearance:textfield;
+  font-family:-apple-system,sans-serif;
+}
+.input-row input::-webkit-inner-spin-button,
+.input-row input::-webkit-outer-spin-button { -webkit-appearance:none; }
+.unit { position:absolute; right:12px; top:50%; margin-top:-9px; color:#6b7a99; font-size:13px; pointer-events:none; }
+.hint { font-size:10px; color:#6b7a99; margin-top:6px; }
+
+.quickrow { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-top:10px; }
+.qbtn {
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:4px;
+  padding:7px 2px;
+  font-size:10px;
+  color:#6b7a99;
+  cursor:pointer;
+  text-align:center;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;
+  font-family:-apple-system,sans-serif;
+}
+.qbtn * { pointer-events:none; }
+
+.bar { margin:8px 0; }
+.bartop { display:grid; grid-template-columns:1fr auto; margin-bottom:4px; font-size:11px; }
+.bnm { color:#6b7a99; }
+.bamt { color:#e8c97a; }
+.btrack { height:5px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+.bfill { height:100%; border-radius:3px; background:linear-gradient(90deg,#c9a84c,#e8c97a); width:0%; }
+.bfill.t2 { background:linear-gradient(90deg,#4a7fc1,#7fb3e8); }
+.bfill.t3 { background:linear-gradient(90deg,#6b58c4,#9b8cdb); }
+.dline { border:none; border-top:1px solid rgba(255,255,255,0.06); margin:10px 0; }
+
+.result-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(201,168,76,0.2); border-radius:6px; overflow:hidden; margin-bottom:12px; }
+.rcell { background:rgba(10,22,40,0.85); padding:14px 12px; }
+.rcell.b { background:rgba(10,22,40,0.5); }
+.rlbl { font-size:9px; color:#6b7a99; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; display:block; }
+.rval { font-size:26px; font-weight:700; color:#c9a84c; display:block; line-height:1; }
+.rval.g { color:#4ade80; }
+.rsub { font-size:10px; color:#6b7a99; margin-top:5px; display:block; }
+.cmsg { font-size:11px; color:#6b7a99; line-height:1.7; padding-left:14px; position:relative; }
+.cmsg::before { content:'*'; position:absolute; left:0; color:#c9a84c; }
+
+.stat4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:1px; background:rgba(201,168,76,0.2); border-radius:6px; overflow:hidden; margin-bottom:12px; }
+.stat { background:#112240; padding:12px 6px; text-align:center; }
+.slbl { font-size:9px; color:#6b7a99; text-transform:uppercase; margin-bottom:4px; display:block; line-height:1.4; }
+.sval { font-size:12px; font-weight:700; color:#faf7f0; display:block; }
+.sval.g { color:#4ade80; }
+.sval.gold { color:#e8c97a; }
+
+.notes { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.note { display:grid; grid-template-columns:18px 1fr; gap:6px; padding:9px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:4px; }
+.nttl { font-size:11px; font-weight:700; color:#e8c97a; margin-bottom:1px; display:block; }
+.ntxt { font-size:10px; color:#6b7a99; line-height:1.4; display:block; }
+
+.warn { display:none; margin-top:10px; padding:8px 10px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:5px; font-size:11px; color:#f0c06a; line-height:1.5; }
+.warn.on { display:block; }
+
+footer { text-align:center; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.06); font-size:10px; color:#4a5a78; line-height:1.8; }
+
+@media (max-width:380px) {
+  .grid4 { grid-template-columns:1fr 1fr; }
+  .quickrow { grid-template-columns:repeat(3,1fr); }
+  .stat4 { grid-template-columns:1fr 1fr; }
+  .notes { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<h1>국민성장펀드<br><span>절세 수익률 계산기</span></h1>
+<p class="sub">과세표준 구간과 납입액을 입력하면<br>절세액과 납입액 대비 수익률을 확인합니다</p>
+
+<!-- STEP 1 -->
+<div class="section">
+  <div class="section-head">STEP 01 &nbsp; 과세표준 구간 선택</div>
+  <div class="section-body">
+    <div class="grid4">
+      <button class="taxbtn" id="b0"><span class="brate">6.6%</span><span class="brange">~1,400만원</span></button>
+      <button class="taxbtn" id="b1"><span class="brate">16.5%</span><span class="brange">1,400~5,000만</span></button>
+      <button class="taxbtn on" id="b2"><span class="brate">26.4%</span><span class="brange">5,000~8,800만</span></button>
+      <button class="taxbtn" id="b3"><span class="brate">38.5%</span><span class="brange">8,800만~1.5억</span></button>
+    </div>
+    <div class="grid3">
+      <button class="taxbtn" id="b4"><span class="brate">41.8%</span><span class="brange">1.5억~3억</span></button>
+      <button class="taxbtn" id="b5"><span class="brate">41.8%</span><span class="brange">3억~5억</span></button>
+      <button class="taxbtn" id="b6"><span class="brate">49.5%</span><span class="brange">5억 초과</span></button>
+    </div>
+    <div class="warn" id="hwarn">고소득 구간일수록 절세 효과가 큽니다. 단, 직전 3년 중 1회라도 금융소득종합과세 대상이었다면 전용계좌 개설이 제한될 수 있습니다.</div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="section">
+  <div class="section-head">STEP 02 &nbsp; 펀드 납입액 입력</div>
+  <div class="section-body">
+    <div class="input-row">
+      <input type="number" id="amtin" inputmode="numeric" value="3000" min="100" max="10000">
+      <span class="unit">만원</span>
+    </div>
+    <div class="hint">최소 100만원 / 최대 1억원 (소득공제 한도 7,000만원)</div>
+    <div class="quickrow">
+      <button class="qbtn" id="q1">1,000만</button>
+      <button class="qbtn" id="q2">3,000만</button>
+      <button class="qbtn" id="q3">5,000만</button>
+      <button class="qbtn" id="q4">7,000만</button>
+      <button class="qbtn" id="q5">1억</button>
+    </div>
+  </div>
+</div>
+
+<!-- 소득공제 분석 -->
+<div class="section">
+  <div class="section-head">소득공제 구간 분석</div>
+  <div class="section-body">
+    <div class="bar">
+      <div class="bartop"><span class="bnm">1구간 3,000만원 이하 (40%)</span><span class="bamt" id="ded1">—</span></div>
+      <div class="btrack"><div class="bfill" id="bar1"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bartop"><span class="bnm">2구간 3,000~5,000만 (20%)</span><span class="bamt" id="ded2">—</span></div>
+      <div class="btrack"><div class="bfill t2" id="bar2"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bartop"><span class="bnm">3구간 5,000~7,000만 (10%)</span><span class="bamt" id="ded3">—</span></div>
+      <div class="btrack"><div class="bfill t3" id="bar3"></div></div>
+    </div>
+    <div class="dline"></div>
+    <div class="bar">
+      <div class="bartop">
+        <span class="bnm" style="color:#e8c97a;font-weight:700">합계 소득공제액</span>
+        <span class="bamt" style="color:#c9a84c;font-size:13px" id="dedtotal">—</span>
+      </div>
+      <div class="btrack" style="height:8px"><div class="bfill" id="bartotal"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div class="section">
+  <div class="section-head">계산 결과</div>
+  <div class="section-body">
+    <div class="result-grid">
+      <div class="rcell">
+        <span class="rlbl">예상 절세액</span>
+        <span class="rval" id="rTax">—</span>
+        <span class="rsub" id="rTaxSub">소득공제 x 세율</span>
+      </div>
+      <div class="rcell b">
+        <span class="rlbl">절세 수익률</span>
+        <span class="rval g" id="rRate">—</span>
+        <span class="rsub" id="rRateSub">절세액 / 납입액</span>
+      </div>
+    </div>
+    <div class="cmsg" id="cmsg">과세표준 구간과 납입액을 입력하면 결과가 표시됩니다.</div>
+  </div>
+</div>
+
+<!-- 통계 -->
+<div class="stat4">
+  <div class="stat"><span class="slbl">총 소득공제액</span><span class="sval gold" id="stDed">—</span></div>
+  <div class="stat"><span class="slbl">적용 세율 (지방세)</span><span class="sval" id="stRate">—</span></div>
+  <div class="stat"><span class="slbl">절세 수익률</span><span class="sval g" id="stRatio">—</span></div>
+  <div class="stat"><span class="slbl">연환산 (3년)</span><span class="sval g" id="stAnnual">—</span></div>
+</div>
+
+<!-- 유의사항 -->
+<div class="section">
+  <div class="section-head">주요 유의사항</div>
+  <div class="section-body" style="padding:12px">
+    <div class="notes">
+      <div class="note"><span>📅</span><div><span class="nttl">의무 보유 3년</span><span class="ntxt">중도환매 시 감면세액 전액 추징</span></div></div>
+      <div class="note"><span>🏦</span><div><span class="nttl">전용계좌 가입 필수</span><span class="ntxt">일반계좌는 세제혜택 없음</span></div></div>
+      <div class="note"><span>💰</span><div><span class="nttl">배당소득 9% 분리과세</span><span class="ntxt">5년간, 일반 15.4% 대비 유리</span></div></div>
+      <div class="note"><span>⚖️</span><div><span class="nttl">총 공제한도 연 2,500만</span><span class="ntxt">타 공제항목과 합산 적용</span></div></div>
+      <div class="note"><span>🛡️</span><div><span class="nttl">정부 손실 20% 부담</span><span class="ntxt">재정 1,200억원 규모 흡수</span></div></div>
+      <div class="note"><span>🚫</span><div><span class="nttl">금융소득종합과세 제한</span><span class="ntxt">직전 3년 1회 해당 시 제한</span></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  본 계산기는 참고용입니다. 정확한 세무 처리는 전문가에게 상담하세요.<br>
+  출시 2026.05.22 &middot; 판매 ~06.11 &middot; 모집액 6,000억원(선착순)
+</footer>
+
+<script>
+(function() {
+  var SEL = 2;
+  var AMT = 3000;
+  var RATES = [0.066, 0.165, 0.264, 0.385, 0.418, 0.418, 0.495];
+  var DISPS = ['6.6%', '16.5%', '26.4%', '38.5%', '41.8%', '41.8%', '49.5%'];
+  var QVALS = [1000, 3000, 5000, 7000, 10000];
+
+  function nc(n) {
+    var s = String(Math.round(n < 0 ? 0 : n));
+    var r = '';
+    var c = 0;
+    for (var i = s.length - 1; i >= 0; i--) {
+      r = s[i] + r;
+      c++;
+      if (c % 3 === 0 && i > 0) r = ',' + r;
+    }
+    return r;
+  }
+
+  function fw(v) {
+    v = Math.round(v);
+    if (v >= 10000) {
+      var e = v / 10000;
+      var es = (e % 1 === 0) ? String(Math.round(e)) : (Math.round(e * 10) / 10).toFixed(1);
+      return es + '\uc5b5\uc6d0';
+    }
+    return nc(v) + '\ub9cc\uc6d0';
+  }
+
+  function ded(a) {
+    var a1 = a >= 3000 ? 3000 : a;
+    var a2 = a > 3000 ? (a >= 5000 ? 2000 : a - 3000) : 0;
+    var a3 = a > 5000 ? (a >= 7000 ? 2000 : a - 5000) : 0;
+    var t = a1 * 0.4 + a2 * 0.2 + a3 * 0.1;
+    if (t > 1800) t = 1800;
+    return { t1: a1 * 0.4, t2: a2 * 0.2, t3: a3 * 0.1, total: t };
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function setText(id, t) {
+    var e = el(id);
+    if (e) e.textContent = t;
+  }
+
+  function setW(id, w) {
+    var e = el(id);
+    if (e) e.style.width = (w > 100 ? 100 : w < 0 ? 0 : w) + '%';
+  }
+
+  function pick(i) {
+    SEL = i;
+    for (var j = 0; j < 7; j++) {
+      var b = el('b' + j);
+      if (b) b.className = (j === i) ? 'taxbtn on' : 'taxbtn';
+    }
+    var w = el('hwarn');
+    if (w) w.className = (i >= 3) ? 'warn on' : 'warn';
+    calc();
+  }
+
+  function setAmt(v) {
+    AMT = v;
+    var inp = el('amtin');
+    if (inp) inp.value = String(v);
+    calc();
+  }
+
+  function calc() {
+    var d = ded(AMT);
+    var rate = RATES[SEL];
+    var disp = DISPS[SEL];
+    var tax = Math.round(d.total * rate);
+    var ratio = AMT > 0 ? Math.round(tax / AMT * 10000) / 100 : 0;
+    var annual = Math.round(ratio / 3 * 100) / 100;
+
+    setText('ded1', nc(Math.round(d.t1)) + '\ub9cc\uc6d0');
+    setText('ded2', nc(Math.round(d.t2)) + '\ub9cc\uc6d0');
+    setText('ded3', nc(Math.round(d.t3)) + '\ub9cc\uc6d0');
+    setText('dedtotal', nc(Math.round(d.total)) + '\ub9cc\uc6d0');
+    setW('bar1', Math.round(d.t1 / 1800 * 100));
+    setW('bar2', Math.round(d.t2 / 1800 * 100));
+    setW('bar3', Math.round(d.t3 / 1800 * 100));
+    setW('bartotal', Math.round(d.total / 1800 * 100));
+
+    setText('rTax', tax > 0 ? fw(tax) : '—');
+    setText('rTaxSub', nc(Math.round(d.total)) + '\ub9cc\uc6d0 x ' + disp);
+    setText('rRate', tax > 0 ? ratio.toFixed(2) + '%' : '—');
+    setText('rRateSub', tax > 0 ? fw(tax) + ' / ' + fw(AMT) : '\uc808\uc138\uc561 / \ub0a9\uc785\uc561');
+    setText('cmsg', tax > 0
+      ? '\ub0a9\uc785 ' + fw(AMT) + ' \u2192 \uc808\uc138 ' + fw(tax) + ' | \uc218\uc775\ub960 ' + ratio.toFixed(2) + '%, \uc5f0\ud658\uc0b0 ' + annual.toFixed(2) + '% (3\ub144 \ubcf4\uc720 \uae30\uc900)'
+      : '\uacfc\uc138\ud45c\uc900 \uad6c\uac04\uacfc \ub0a9\uc785\uc561\uc744 \uc785\ub825\ud558\uba74 \uacb0\uacfc\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4.');
+
+    setText('stDed', nc(Math.round(d.total)) + '\ub9cc\uc6d0');
+    setText('stRate', disp);
+    setText('stRatio', tax > 0 ? ratio.toFixed(2) + '%' : '—');
+    setText('stAnnual', tax > 0 ? annual.toFixed(2) + '%' : '—');
+  }
+
+  // 과세표준 버튼 이벤트 — addEventListener만 사용
+  for (var i = 0; i < 7; i++) {
+    (function(idx) {
+      var btn = el('b' + idx);
+      if (!btn) return;
+      btn.addEventListener('click', function() { pick(idx); });
+      btn.addEventListener('touchend', function(e) { e.preventDefault(); pick(idx); });
+    })(i);
+  }
+
+  // 빠른 선택 버튼
+  var qvals = [1000, 3000, 5000, 7000, 10000];
+  for (var k = 0; k < 5; k++) {
+    (function(val) {
+      var btn = el('q' + (qvals.indexOf(val) + 1));
+      if (!btn) return;
+      btn.addEventListener('click', function() { setAmt(val); });
+      btn.addEventListener('touchend', function(e) { e.preventDefault(); setAmt(val); });
+    })(qvals[k]);
+  }
+
+  // 납입액 입력
+  var inp = el('amtin');
+  if (inp) {
+    inp.addEventListener('change', function() {
+      var v = parseInt(this.value, 10);
+      if (!v || v < 100) { this.value = '100'; AMT = 100; }
+      else if (v > 10000) { this.value = '10000'; AMT = 10000; }
+      else { AMT = v; }
+      calc();
+    });
+    inp.addEventListener('input', function() {
+      var v = parseInt(this.value, 10);
+      if (v && v >= 100 && v <= 10000) { AMT = v; calc(); }
+    });
+  }
+
+  // 초기 실행
+  calc();
+})();
+</script>
+</body>
+</html>
